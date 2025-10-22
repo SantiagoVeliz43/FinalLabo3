@@ -1,1 +1,784 @@
-hola
+BASE DE DATOS RELACIONALES
+Desarrolladas por Edgar F. Codd, son el modelo más utilizado para gestionar datos en informática. Organizan la información en filas y columnas, permitiendo establecer relaciones mediante claves primarias y foráneas. Esta estructura garantiza integridad, evita redundancia y facilita la recuperación de datos complejos. El lenguaje SQL permite consultar y manipular los datos de forma declarativa y eficiente.
+
+Métodos de Conexión: Canal que permite enviar consultas (como SELECT, INSERT, UPDATE, DELETE) y recibir resultados. Varía según el lenguaje de programación, el entorno de desarrollo y el sistema gestor utilizado.
+
+Conectores Nativos y APIs Específicas: Cada SGBDR ofrece sus propios conectores optimizados para su arquitectura. Permiten que aplicaciones escritas en distintos lenguajes se comuniquen directamente con la base de datos, manejando aspectos como autenticación, cifrado y transacciones. Ejemplos incluyen MySQL Connector/J para Java, psycopg para PostgreSQL en Python, SqlClient para .NET y el uso de SQLAlchemy como ORM que se apoya en conectores nativos.
+
+Interfaces de Conectividad Estándar: Facilitan interoperabilidad entre aplicaciones y distintos SGBDR, existen:
+    • ODBC: Desarrollado por Microsoft, actúa como capa intermedia entre la aplicación y el gestor, permitiendo conexiones a múltiples bases de datos mediante controladores específicos. 
+    • JDBC: Es la alternativa estándar en el ecosistema Java con una arquitectura similar.
+
+ORM (Object-Relational Mapping): Permiten trabajar con objetos en lugar de escribir SQL directamente. Esto simplifica el desarrollo, mejora la seguridad y facilita la portabilidad entre gestores. Frameworks como Hibernate, Entity Framework, SQLAlchemy o Sequelize son ampliamente utilizados.
+
+Arquitectura Cliente-Servidor: Los SGBDR modernos operan bajo un modelo cliente-servidor. Las aplicaciones cliente envían consultas al servidor, que las procesa y devuelve los resultados. Esta separación permite que múltiples clientes accedan a un único servidor, facilitando la escalabilidad y el mantenimiento centralizado.
+
+Niveles de Abstracción: La arquitectura de tres esquemas permite independencia y flexibilidad, ademas de permitir modificar la lógica o el almacenamiento sin afectar a los usuarios ni a las aplicaciones.
+    • Esquema externo: Representa la vista personalizada de cada usuario, ocultando detalles internos. 
+    • Esquema conceptual: Define la estructura lógica global de la base,
+    • Esquema interno: Describe cómo se almacenan físicamente los datos en disco. 
+
+Ciclo de una Conexión a Base de Datos:
+    1. Establecimiento de la Conexión: La aplicación debe cargar el controlador correspondiente al SGBDR, definir la cadena de conexión con parámetros como host, puerto, nombre de base, credenciales y opciones adicionales, y finalmente abrir la conexión mediante una función específica.
+    2. Uso de la Conexión: Se crean objetos como Statement o Cursor para enviar consultas. Las operaciones  SQL pueden ser de lectura (SELECT), modificación (INSERT, UPDATE, DELETE) o estructurales (CREATE, ALTER, DROP). Para garantizar propiedades ACID, se agrupan en transacciones que se confirman (commit) o revierten (rollback) según el resultado.
+    3. Cierre de la Conexión: Es fundamental cerrar la conexión y liberar los recursos asociados. No hacerlo puede provocar fugas, saturación de conexiones y degradación del rendimiento. El cierre debe incluir todos los objetos creados (ResultSet, Statement/Cursor, Connection), preferentemente en orden inverso y dentro de bloques seguros (finally o try-with-resources), para garantizar que se ejecuten incluso ante errores.
+
+Arquitectura Interna de un SGBDR Relacional: Su arquitectura se compone de varios módulos especializados que trabajan en conjunto para garantizar eficiencia, seguridad y consistencia. Los componentes principales son:
+    • Gestor de almacenamiento: Se encarga de la interacción con el sistema de archivos, organizando los datos en bloques, administrando el espacio en disco, los índices y la memoria caché. También gestiona los registros individuales dentro de los bloques.
+    • Procesador de consultas: Interpreta y ejecuta las instrucciones SQL. Incluye un analizador sintáctico y semántico, un optimizador que elige el plan de ejecución más eficiente, y un motor que lleva a cabo dicho plan interactuando con el almacenamiento.
+    • Gestor de transacciones: garantiza que las operaciones se realicen de forma segura, incluso ante fallos o concurrencia. Controla el acceso simultáneo mediante bloqueos o MVCC, y gestiona la recuperación usando logs para restaurar el estado consistente de la base.
+    • Gestor de catálogo: Mantiene el diccionario de datos, que contiene metadatos sobre tablas, columnas, restricciones, vistas, usuarios y estadísticas. Este catálogo es consultado por todos los componentes del sistema.
+    • Gestor de seguridad: Controla el acceso a los datos mediante autenticación, autorización y auditoría, asegurando que cada usuario solo pueda realizar las operaciones permitidas.
+
+MODELO SEMÁNTICO DE BASE DE DATOS 
+Técnica que busca representar de manera precisa y significativa los datos y las relaciones dentro de un dominio específico. Su objetivo es crear un modelo que no solo refleje las estructuras de datos necesarias para almacenar información, sino que también capture el significado y las reglas del negocio subyacente. 
+
+Proceso de diseño:
+    1. Recolección y Análisis de Requisitos
+    2. Crear Diseño Conceptual
+    3. Convertir el Diseño Conceptual a Diseño Lógico, incluyendo la normalización y la definición de esquemas relacionales.
+    4. Crear Diseño Físico, incluyendo la selección de estructuras de almacenamiento, índices y particionamiento.
+    5. Implementación
+    6. Pruebas y Validación
+    7. Mantenimiento y Evolución
+
+Ciclo de vida del Sistema de Aplicación:
+    1. Planificación
+    2. Análisis de Requisitos
+    3. Diseño del Sistema.
+    4. Desarrollo
+    5. Pruebas
+    6. Implementación
+    7. Mantenimiento
+
+Representación del proceso: Mediante diagramas y modelos como DER, DFD y de actividad, que muestran las distintas fases y sus interacciones.
+
+Pautas para el diseño fisico:
+    1. Selección de Índices apropiados
+    2. Particionamiento
+    3. Almacenamiento de Datos
+    4. Optimización del Rendimiento
+    5. Seguridad y Recuperación
+
+Normalización: Proceso teórico-práctico aplicado al diseño con el objetivo de minimizar dependencias innecesarias, optimizar el almacenamiento y mejorar la eficiencia de las consultas. Además, busca evitar inconsistencias en operaciones como inserción, actualización y eliminación, y facilitar la evolución del esquema sin alterar significativamente su estructura. 
+Se le dice Desnormalizacion al proceso contrario, cuando se prioriza el rendimiento sobre la eliminación de redundancias, como en sistemas de donde las consultas rápidas son críticas y se acepta cierto grado de redundancia controlada.
+
+Formas normales: conjuntos de reglas o criterios que las tablas deben cumplir.
+    • 1NF
+        ◦ Criterio: Atributos con valores atómicos. 
+        ◦ Validación: No se permiten listas, conjuntos ni múltiples valores por celda.  
+    • 2NF
+        ◦ Criterio: Cumple 1NF + dependencia total de la clave primaria. 
+        ◦ Validación: Evita dependencias parciales en claves compuestas. 
+    • 3NF
+        ◦ Criterio: Cumple 2NF + no hay dependencias transitivas entre atributos no clave. 
+        ◦ Validación: Cada atributo no clave depende únicamente de la clave primaria. 
+    • Boyce-Codd
+        ◦ Criterio: Cumple 3NF + toda dependencia funcional X → Y implica que X es superclave. 
+        ◦ Validación: Refuerza la unicidad en presencia de múltiples claves candidatas. 
+
+Ventajas:
+    • Reducción de la redundancia
+    • Integridad de los datos
+    • Mejoras en la eficiencia de las consultas
+
+Desventajas:
+    • Complejidad de diseño de la base
+    • Rendimiento: Suele requerir múltiples JOINs para recuperar datos relacionados, lo que puede afectar el rendimiento en sistemas con gran volumen de consultas.
+
+
+
+
+
+BASES DE DATOS DE RED
+El DataBase Task Group desarollado en los 60 e impulsado por CODASYL en el 71, Innovo con la implementación de relaciones de muchos a muchos mediante registros con múltiples padres, ofreciendo una solución precisa y flexible para modelar interconexiones reales, aportando conceptos como la navegación por punteros y la gestión explícita de relaciones
+
+Conceptos y estructura:
+    • Records: Unidades lógicas de datos, equivalentes a filas en una tabla relacional. Compuestos por campos o atributos que describen una instancia concreta de una entidad. La definición de todos los tipos de registros y sus atributos forma el esquema de la base de datos.
+    • Sets: Actúan como relaciones 1:M entre dos tipos de registros: un propietario (owner) y uno o varios miembros (members). Cada conjunto lleva un nombre único y agrupa ocurrencias de un registro propietario con sus registros miembros, permitiendo además que un miembro participe en varios conjuntos.
+    • Owner and Member: En cada conjunto, el propietario es el registro “uno” y puede enlazar con cero o más miembros; cada miembro, a su vez, solo tiene un propietario dentro de ese conjunto. Esta estructura jerárquica y vinculada facilita la navegación directa mediante punteros.
+    • Manejo de relaciones M:M: El modelo de red representa relaciones M:M de forma nativa sin duplicación de datos, creando registros de enlace que funcionan como miembros en dos conjuntos distintos, estableciendo así asociaciones bidireccionales..
+
+Características:
+    • Representación de datos como grafo dirigido: Los registros actúan como nodos y los conjuntos como aristas dirigidas que conectan propietario y miembro, permitiendo modelar relaciones complejas y navegar de forma flexible
+    • Navegación procedural mediante punteros: Cada registro incluye punteros a sus registros relacionados, de modo que para acceder a un dato el sistema debe seguir rutas predefinidas.
+    • Flexibilidad en las relaciones: Se admite que un registro hijo tenga múltiples padres, lo que refleja naturalmente escenarios M:M sin duplicar información.
+    • Esquema predefinido y rígido: La estructura de registros, campos y conjuntos debe definirse de antemano. Cualquier modificación de esquema requiere una reorganización costosa de la base de datos y sus aplicaciones, implicando tiempos de inactividad.
+
+Ventajas:
+    • Flexibilidad para relaciones complejas
+    • Eficiencia en recuperación de datos
+    • Integridad de datos mejorada
+    • Independencia física parcial
+
+Desventajas:
+    • Complejidad de diseño e implementación.
+    • Dificultad para consultas ad-hoc
+    • Fuerte acoplamiento lógico-físico
+    • Escasa flexibilidad para cambios y mantenimiento
+
+Aplicaciones históricas:
+    • IDMS: Desarrollado por Cullinet (luego Computer Associates) para mainframes IBM, destacó en las décadas de 70 y 80 por su alto rendimiento en aplicaciones transaccionales de gran volumen, siendo eje en finanzas, seguros y manufactura.
+    • IDS: Creado por Charles Bachman en General Electric, se considera uno de los primeros SGBD de red y sirvió de inspiración para el estándar CODASYL. Bachman demostró con IDS la viabilidad del modelo de red en entornos empresariales.
+    • Otras aplicaciones:
+        ◦ Sistema de gestion de inventarios
+        ◦ Aplicaciones financieras
+        ◦ Sistema de gestion y servervas de recursos
+        ◦ Aplicaciones industriales y de fabricacion
+
+Influencia:
+    • Sentó las bases conceptuales al representar datos como nodos y relaciones dirigidas, pero las grafos modernas añaden lenguajes declarativos más expresivos que los procedimientos con punteros de la red.
+    • Los fundamentos de la teoría de conjuntos influyeron en la especificación CODASYL y subyacen en la manera de agrupar y relacionar registros en cualquier sistema de gestión de datos.
+    • Del auge y declive del modelo se extraen tres lecciones clave: la simplicidad en el diseño es vital; los lenguajes declarativos aumentan flexibilidad y productividad; y los modelos deben adaptarse conforme crecen las necesidades de análisis y la complejidad de las aplicaciones.
+
+
+
+
+BASES DE DATOS NO SQL
+Desarolladas en los 2000 para manejar datos no estructurados, aplicaciones distribuidas y garantizar alta disponibilidad, debido al crecimiento masivo de datos y las limitaciones de las bases relacionales, como problemas de escalabilidad y rigidez en el esquema. Los ejemplos mas claros de estas son Bigtable, Dynamo, Cassandra. 
+
+Características:
+    • Escalabilidad horizontal, añadiendo nodos.
+    • Flexibilidad de esquema
+    • Alta disponibilidad y tolerancia a fallos
+    • Rendimiento optimizado
+    • Modelos de datos variados
+      
+Ventajas:
+    • Excelente manejo de datos distribuidos 
+    • Evolución sin interrupciones 
+    • Alto rendimiento en lectura/escritura 
+    • Alta disponibilidad y tolerancia a fallos
+
+Diferencias clave con SQL
+	SQL	NoSQL
+Modelo de datos	Tablas rígidas	Documentos, clave-valor, columnas, grafos
+Escalabilidad	Vertical (mejor hardware)	Horizontal (más nodos)
+Consistencia	ACID	BASE
+Flexibilidad de esquema	Esquema fijo	Esquema dinámico
+
+Teorema CAP: En sistemas distribuidos, solo se pueden garantizar simultáneamente dos de estas tres propiedades:
+    • Consistencia (C): todos los nodos muestran los mismos datos al mismo tiempo.
+    • Disponibilidad (A): el sistema responde a todas las solicitudes aunque algunos nodos estén caídos.
+    • Tolerancia a particiones (P): el sistema continúa funcionando a pesar de fallos en la red o particiones entre nodos.
+NoSQL suele priorizar Disponibilidad y Tolerancia a particiones, aceptando consistencia eventual.
+
+Modelo BASE: Complementa la filosofía de NoSQL frente a los sistemas ACID de SQL:
+    • Basically Available: disponibilidad garantizada.
+    • Soft state: El estado puede cambiar sin actualizaciones explícitas. 
+    • Eventually consistent: los datos se sincronizan con el tiempo. 
+
+Implicancias prácticas
+    • Las lecturas pueden ser temporalmente inconsistentes. 
+    • Se requiere replicación y sincronización entre nodos. 
+    • Ideal para sistemas distribuidos, escalables y de alto tráfico como servicios en la nube. 
+
+Futuro y Tendencias:
+    • Cloud NoSQL: Servicios gestionados como MongoDB Atlas y DynamoDB facilitan escalabilidad automática y despliegue global. 
+    • Multi-modelo: Bases como ArangoDB permiten combinar documentos, grafos y clave-valor en un solo sistema. 
+    • Big Data y Machine Learning: Integración con Spark, Hadoop y Flink para análisis en tiempo real y entrenamiento de modelos. 
+    • Optimización Inteligente: Automatización de particiones, índices y replicación según demanda. 
+    • Seguridad y Cumplimiento: Cifrado avanzado y cumplimiento con normativas internacionales. 
+
+Buenas Prácticas de Diseño:
+    • Modelado de Datos
+        ◦ Diseñar según patrones de consulta. 
+        ◦ Denormalizar cuando sea necesario. 
+        ◦ Definir claves primarias y de partición eficientes. 
+        ◦ Evitar documentos demasiado grandes. 
+    • Escalabilidad y Rendimiento
+        ◦ Escalar horizontalmente. 
+        ◦ Configurar replicación. 
+        ◦ Crear índices solo en campos críticos. 
+        ◦ Usar caché en memoria para reducir latencia. 
+    • Consistencia y Disponibilidad
+        ◦ Aplicar el teorema CAP según el caso. 
+        ◦ Diseñar para consistencia eventual cuando sea viable. 
+        ◦ Usar transacciones atómicas si se requiere. 
+    • Monitoreo y Seguridad
+        ◦ Medir latencia, uso de recursos y throughput. 
+        ◦ Configurar alertas y backups. 
+        ◦ Aplicar autenticación, cifrado y auditoría de accesos. 
+
+
+
+TIPOS DE BASES NO SQL
+Clave-Valor: Almacenan pares únicos donde cada clave accede directamente a un valor. Son ideales para accesos rápidos sin relaciones complejas.
+    • Estructura
+        ◦ Clave. 
+        ◦ Valor
+        ◦ Namespaces
+    • Tecnologías
+Características	Redis	DynamoDB
+Almacenamiento	RAM + persistencia opcional	Disco gestionado por AWS
+Velocidad	Muy alta	Alta (dependiente de red)
+Escalabilidad	Clustering y replicación	Escalado automático
+Consultas	Por clave, listas, hashes	Por clave o índice secundario
+Casos de uso	Caché, sesiones, colas	Apps web, catálogos, análisis
+Buenas practicas	ideal para datos volátiles y de alta frecuencia.	útil para almacenamiento persistente y escalable. +
+
+Documentos: Almacenan datos en documentos estructurados (JSON, BSON, XML) con objetos y arreglos anidados. No requieren esquemas fijos y permiten consultas avanzadas.
+    • Estructura
+        ◦ Documentos
+        ◦ Colecciones
+        ◦ Campos
+    • Tecnologías
+Características	MongoDB	CouchDB
+Modelo de datos	BSON/JSON	JSON
+Consistencia	Fuerte eventual (configurable)	Eventual
+Escalabilidad	Sharding + replicación	Multi-master sync
+Consultas	SQL-like + agregaciones	MapReduce
+Casos de uso	Web, e-commerce, catálogos	Apps móviles, sincronización
+    • Buenas Prácticas
+        ◦ Modelar según consultas frecuentes. 
+        ◦ Evitar documentos excesivamente grandes. 
+        ◦ Usar índices estratégicos. 
+        ◦ Ajustar consistencia según el entorno distribuido. 
+
+Columnas: Organizan los datos por columnas y familias de columnas, optimizando el acceso analítico en entornos distribuidos.
+    • Estructura:
+        ◦ Familias de columnas
+        ◦ Columnas
+        ◦ Filas 
+        ◦ Particiones
+    • Tecnologías
+Característica	Cassandra	HBase
+Modelo	Columnas y familias	Columnas y familias
+Consistencia	Tunable (eventual o fuerte)	Eventual
+Escalabilidad	Horizontal masiva	Distribuida sobre HDFS
+Consultas	CQL (SQL-like)	API Java / MapReduce
+Casos de uso	Big Data, IoT, logs	Almacenamiento masivo, análisis
+    • Buenas Prácticas
+        ◦ Diseñar claves primarias según patrones de consulta. 
+        ◦ Agrupar columnas por frecuencia de acceso. 
+        ◦ Configurar replicación y consistencia. 
+        ◦ Usar HBase si se requiere integración con Hadoop. 
+        ◦ Evitar actualizaciones frecuentes en columnas grandes. 
+
+
+
+
+
+
+Grafos: Representan relaciones complejas entre entidades mediante nodos y aristas con propiedades. Ideales para redes sociales, recomendaciones y detección de patrones.
+    • Estructura
+        ◦ Nodos
+        ◦ Aristas
+        ◦ Propiedades
+        ◦ Grafos
+    • Tecnologías
+Característica	Neo4j	ArangoDB
+Modelo de datos	Grafos puros	Multi-modelo
+Consultas	Cypher	AQL
+Escalabilidad	Vertical, clustering limitado	Distribuido con sharding
+Casos de uso	Redes sociales, fraudes	Grafos + documentos, rutas
+    • Buenas Prácticas
+        ◦ Modelar según patrones de consulta. 
+        ◦ Evitar super-nodos
+        ◦ Mantener consistencia en relaciones críticas. 
+        ◦ Usar índices y recorridos optimizados. 
+        ◦ Elegir bases multi-modelo si se combinan grafos con otros tipos de datos. 
+
+Aplicaciones: Usadas para manejar grandes volúmenes de datos, por ejemplo:
+    • Redes Sociales: Grafos para relaciones entre usuarios; Documentos para publicaciones y perfiles. 
+    • Comercio Electrónico: Clave-valor para sesiones y caché; Documentos para catálogos y pedidos. 
+    • Streaming: Documentos y Columnas para métricas y preferencias de usuario. 
+    • IoT: Columnas para series temporales; Clave-valor para datos recientes. 
+    • Finanzas y Fraudes: Grafos para analizar transacciones y detectar patrones sospechosos. 
+    • Publicidad y Marketing: Documentos y Columnas para segmentación y métricas en tiempo real. 
+
+BASES EN LA NUBE
+Servicio accesible mediante plataformas cloud, que ofrece funciones similares a las bases tradicionales, pero con ventajas como escalabilidad, disponibilidad y acceso remoto. No necesitan de infraestructura física, delegando esa tarea a proveedores especializados.
+Características Clave
+    • Escalabilidad Elástica: Ajuste automático de recursos según la demanda. 
+    • Alta Disponibilidad: Redundancia geográfica y recuperación automática ante fallos. 
+    • Acceso Global: Disponibilidad desde cualquier lugar con internet. 
+    • Gestión Automatizada: Backups, actualizaciones y monitoreo sin intervención manual. 
+    • Pago por Uso: Modelo económico basado en consumo real de recursos. 
+Tipos Principales
+    • Relacionales (SQL): Estructura clásica con soporte ACID y consultas SQL estándar. 
+    • NoSQL: Flexibles para datos no estructurados o semi-estructurados, ideales para grandes volúmenes. 
+    • Series Temporales: Optimizadas para datos que varían con el tiempo (IoT, métricas, logs). 
+        ◦ Compresión y retención automática 
+        ◦ Consultas temporales eficientes 
+
+Modelos de Servicio
+	Control del Usuario	Gestión del Proveedor	Ventajas Clave	Desventajas
+DBaaS	Bajo	Alta	Automatización total, soporte incluido	Menor personalización, dependencia del proveedor
+IaaS	Alto	Infraestructura física	Máxima flexibilidad, migración sencilla	Gestión manual, mayor complejidad
+PaaS	Medio	Plataforma gestionada	Balance, escalabilidad, integración	Restricciones de plataforma, posible lock-in
+
+Ventajas
+    • Reducción de costos: sin inversión en hardware, modelo de pago por uso 
+    • Escalabilidad dinámica: ajuste instantáneo de recursos según demanda 
+    • Alta disponibilidad
+    • Accesibilidad global
+    • Actualizaciones automáticas
+    • Implementación rápida
+
+Desventajas y Consideraciones
+    • Dependencia de conectividad 
+    • Seguridad y privacidad: riesgos por almacenamiento
+    • Vendor lock-in: dificultad para migrar.
+    • Costos variables según uso
+    • Menor control: limitaciones en configuración avanzada 
+    • Cumplimiento normativo: desafíos legales y geográficos 
+Arquitecturas de Despliegue
+Tipo	Ventajas principales	Desventajas principales
+Single-Region	Menor latencia, costos bajos, configuración simple	Riesgo ante desastres regionales, limitaciones legales
+Multi-Region	Alta disponibilidad, rendimiento global, resiliencia	Mayor complejidad, costos altos, posibles inconsistencias
+Hybrid Cloud	Flexibilidad, migración gradual, cumplimiento	Gestión compleja, múltiples entornos
+
+Patrones de Arquitectura
+    • Master-Slave Replication: Escrituras centralizadas, lecturas distribuidas.
+        ◦ Uso: aplicaciones con predominio de lecturas 
+        ◦ Consideraciones: latencia de replicación, failover del maestro 
+    • Sharding Horizontal: División de datos por criterios específicos.
+        ◦ Uso: sistemas con grandes volúmenes de datos 
+        ◦ Consideraciones: consultas complejas entre shards, redistribución 
+    • CQRS: Separación de modelos de lectura y escritura.
+        ◦ Uso: sistemas con accesos diferenciados 
+        ◦ Consideraciones: sincronización eventual, arquitectura compleja 
+    • Event Sourcing: Registro de eventos
+        ◦ Uso: auditoría, sistemas financieros, debugging 
+        ◦ Consideraciones: volumen de datos, consultas complejas 
+
+Seguridad en Bases de Datos en la Nube
+    • Cifrado de Datos
+        ◦ En tránsito: TLS/SSL 
+        ◦ En reposo: cifrado automático con claves gestionadas 
+        ◦ En memoria: protección durante el procesamiento 
+    • Control de Acceso
+        ◦ Autenticación multifactor 
+        ◦ Principio de menor privilegio 
+        ◦ Gestión de identidad empresarial 
+    • Monitoreo y Auditoría
+        ◦ Registro completo de actividades 
+        ◦ Alertas automáticas ante anomalías 
+        ◦ Análisis de comportamiento 
+
+Mejores Prácticas de Seguridad
+    • Configuración Segura por Defecto
+        ◦ Desactivación de servicios innecesarios 
+        ◦ Firewalls y redes privadas virtuales 
+        ◦ Políticas de contraseñas robustas 
+    • Gestión de Vulnerabilidades
+        ◦ Actualizaciones automáticas 
+        ◦ Escaneo regular 
+        ◦ Planes de respuesta a incidentes
+          
+
+
+
+
+
+
+Estrategias de Migración
+Estrategia	Descripción breve	Ventajas principales	Desventajas principales
+Lift and Shift	Migración directa sin cambios	Rápida, bajo riesgo, bajo costo inicial	No optimiza beneficios de la nube
+Replatforming	Migración con ajustes menores	Buen balance entre esfuerzo y mejora	Requiere modificaciones parciales
+Refactoring	Rediseño completo para la nube	Máxima escalabilidad y eficiencia	Mayor costo, tiempo y riesgo
+Repurchasing	Cambio a solución SaaS	Funcionalidades modernas, menos gestión	Pérdida de funciones específicas, curva de aprendizaje
+
+Fases del Proceso de Migración
+    • Evaluación y Planificación
+        ◦ Inventario de bases existentes 
+        ◦ Análisis de dependencias 
+        ◦ Evaluación de rendimiento actual 
+        ◦ Selección de estrategia y proveedor 
+        ◦ Definición de cronograma y recursos 
+    • Preparación
+        ◦ Configuración del entorno destino 
+        ◦ Conectividad segura 
+        ◦ Herramientas de migración 
+        ◦ Entornos de prueba 
+        ◦ Capacitación técnica 
+    • Migración
+        ◦ Transferencia de datos 
+        ◦ Validación de integridad 
+        ◦ Pruebas funcionales y de rendimiento 
+        ◦ Configuración de monitoreo 
+        ◦ Documentación final 
+    • Optimización
+        ◦ Ajustes de rendimiento 
+        ◦ Seguridad reforzada 
+        ◦ Reducción de costos 
+        ◦ Capacitación de usuarios 
+        ◦ Procesos operativos definidos 
+
+Herramientas de Modelado
+    • Calculadoras oficiales: AWS, Azure (con TCO), Google Cloud 
+    • Herramientas de terceros: CloudHealth, CloudCheckr 
+Modelos de Pricing
+Modelo	Ventajas principales	Desventajas principales
+Compute-Based Pricing	Rendimiento predecible, facturación estable	Sobreprovisión, costos fijos altos
+Consumption-Based Pricing	Costos alineados al uso real	Facturación variable, difícil de presupuestar
+Storage-Based Pricing	Transparencia en almacenamiento	Costos crecientes con volumen de datos
+
+Estrategias de Optimización de Costos
+    • Right-Sizing: Ajuste dinámico de instancias según uso real 
+    • Reserved Instances: Descuentos por compromiso a largo plazo 
+    • Spot Instances: Uso de capacidad ociosa a menor costo 
+    • Data Lifecycle Management: Migración automática de datos inactivos 
+    • Query Optimization: Reducción de consumo mediante consultas eficientes 
+    • Automated Scaling: Escalado automático según demanda 
+
+Monitoreo y Control de Costos
+    • Herramientas: AWS Cost Explorer, Azure Cost Management, Google Cloud Billing 
+    • Alertas: Notificaciones ante sobrecostos 
+    • Análisis: Detalle por servicio, proyecto o departamento 
+    • Presupuestos y Proyecciones: Basados en tendencias históricas 
+
+Casos de Uso y Soluciones Recomendadas
+Caso de Uso	Características clave	Soluciones recomendadas
+Aplicaciones Web/Móviles	Tráfico variable, usuarios distribuidos	NoSQL, auto-scaling, CDN, replicación multi-región
+Analytics/BI	Datos históricos, consultas complejas	Data warehouses, ETL serverless, visualización
+IoT/Sensores	Ingesta masiva, series temporales	Timestream, stream processing, compresión
+Aplicaciones Financieras	Consistencia ACID, auditoría, cumplimiento	Relacionales, cifrado, backup, logging
+Juegos en Línea	Latencia baja, escalabilidad instantánea	Bases en memoria, caching, APIs de alto rendimiento
+
+Mejores Prácticas Técnicas
+    • Diseño de Base de Datos
+        ◦ Modelado desnormalizado en NoSQL 
+        ◦ Índices estratégicos y particionamiento horizontal 
+        ◦ Diseño basado en patrones de acceso 
+    • Gestión del Schema
+        ◦ Versionado y migraciones automatizadas 
+        ◦ Testing exhaustivo y rollback 
+        ◦ Documentación clara 
+    • Operaciones y Mantenimiento
+        ◦ Monitoreo proactivo con métricas clave 
+        ◦ Backups automatizados y cross-region 
+        ◦ Optimización continua de queries 
+        ◦ Load testing regular 
+
+
+
+
+    • Desarrollo y DevOps
+        ◦ Infrastructure as Code con ambientes reproducibles 
+        ◦ Automatización de despliegues y CI/CD 
+        ◦ Testing unitario, integración, performance y resiliencia 
+    • Seguridad DevSecOps
+        ◦ Escaneo automático en pipelines 
+        ◦ Gestión segura de credenciales 
+        ◦ Principle of least privilege 
+        ◦ Evaluaciones y pruebas de seguridad periódicas 
+    • Gobierno de Datos
+        ◦ Políticas de calidad y trazabilidad 
+        ◦ Roles definidos de stewardship 
+        ◦ Monitoreo de cumplimiento 
+        ◦ Privacy by Design: minimización, anonimización, consentimiento 
+Consideraciones de Implementación
+    • Evaluación Técnica
+    • Volumen de datos proyectado 
+    • Patrones de acceso (lectura vs escritura) 
+    • Requisitos de latencia 
+    • Nivel de consistencia requerido
+    • Evaluación de Costos
+    • Costos directos: cómputo, almacenamiento, red, backups 
+    • Costos indirectos: capacitación, migración, desarrollo 
+    • Costos de oportunidad: tiempo de ingeniería dedicado a infraestructura 
+    • 
+Proceso de Adopción
+    • Implementación piloto con sistemas no críticos 
+    • Migración gradual de sistemas heredados 
+    • Ejecución paralela durante la transición 
+    • Transferencia y documentación continua 
+
+
+Tendencias Futuras en Bases de Datos en la Nube
+    • Bases de Datos Serverless
+        ◦ Eliminan la gestión de capacidad y escalan automáticamente a cero cuando no se usan 
+        ◦ Costos alineados al uso real, inicialización instantánea, escalabilidad sin límites 
+        ◦ Ejemplos: Aurora Serverless v2, Azure SQL Serverless, Firestore 
+    • Inteligencia Artificial Integrada
+        ◦ Automatización de tareas como optimización de queries, tuning de índices y detección de anomalías 
+        ◦ Capacidades emergentes: escalado predictivo, tuning automático, análisis proactivo 
+        ◦ Ejemplos: Oracle Autonomous DB, SQL Server IQP, RDS Performance Insights 
+    • Multi-Cloud y Bases Distribuidas
+        ◦ Estrategias para evitar dependencia de proveedor y optimizar rendimiento 
+        ◦ Tecnologías: Kubernetes operators, service mesh, gestión unificada, estándares abiertos 
+        ◦ Desafíos: consistencia entre nubes, latencia, complejidad operativa, costos 
+    • Edge Computing
+        ◦ Bases de datos ubicadas en el borde para latencia ultra-baja y procesamiento local 
+        ◦ Características: sincronización con la nube, capacidades offline, footprint reducido 
+        ◦ Casos: vehículos autónomos, manufactura, retail, salud 
+    • Quantum-Ready Databases
+        ◦ Preparación para resistir amenazas cuánticas 
+        ◦ Desarrollos: criptografía post-cuántica, gestión de claves segura, arquitecturas híbridas, algoritmos inspirados en computación cuántica 
+    • Blockchain y Ledgers Distribuidos
+        ◦ Bases inmutables con trazabilidad completa 
+        ◦ Aplicaciones: auditoría financiera, gestión legal, integridad en salud y supply chain 
+        ◦ Tecnologías: Amazon QLDB, Azure Confidential Ledger, Google Cloud Blockchain 
+    • Sostenibilidad y Green Computing
+        ◦ Enfoque en eficiencia energética y uso de energías renovables 
+        ◦ Iniciativas: operaciones carbono-neutral, hardware eficiente, métricas de sostenibilidad 
+        ◦ Impacto: algoritmos energéticamente optimizados, ubicación inteligente de datos, gestión automatizada del ciclo de vida 
+
+
+Planificación de Capacidad en la Nube: Metodologia de Sizing
+    • Baseline Performance: Establecer métricas actuales como referencia 
+    • Growth Projections: Proyectar crecimiento según planes y tendencias 
+    • Peak Load Planning: Anticipar picos estacionales o eventos especiales 
+    • Buffer Planning: Incluir margen de seguridad ante imprevistos 
+
+Gestión del Cambio Organizacional
+Área Impactada	Transformación Clave
+DBAs	De hardware a optimización de servicios cloud
+DevOps	Integración más estrecha entre desarrollo y operaciones
+Seguridad	Nuevas competencias en seguridad y cumplimiento cloud
+Vendor Management	Relación activa con proveedores y gestión de SLAs
+
+Herramientas de Migración
+    • AWS Database Migration Service (DMS):
+        ◦ Migraciones homogéneas y heterogéneas 
+        ◦ Replicación continua de datos 
+        ◦ Conversión de esquemas integrada 
+        ◦ Soporte para motores como Oracle, SQL Server, PostgreSQL 
+        ◦ Migraciones con mínimo downtime 
+    • Azure Database Migration Service:
+        ◦ Evaluación de compatibilidad 
+        ◦ Flujos guiados de migración 
+        ◦ Conectividad híbrida 
+        ◦ Seguridad empresarial durante el proceso 
+        ◦ Integración con Azure DevOps para CI/CD 
+    • Google Cloud Database Migration Service:
+        ◦ Servicio serverless y totalmente gestionado 
+        ◦ Configuración mínima 
+        ◦ Sincronización continua para alta disponibilidad 
+        ◦ Integración nativa con herramientas GCP 
+        ◦ Validación y testing automatizados 
+
+
+
+
+
+
+
+
+Herramientas de Monitoreo y Optimización
+Categoría	Soluciones Nativas	Soluciones de Terceros
+Rendimiento	CloudWatch, RDS Insights, Azure Monitor	DataDog, New Relic, AppDynamics
+Costos	Cost Explorer, Azure Advisor, GCP Billing	CloudHealth, Cloudability, ParkMyCloud
+Seguridad	GuardDuty, Security Center, GCP SCC	Qualys, Rapid7, Prisma Cloud
+Principales Proveedores de Bases de Datos en la Nube
+    • Amazon Web Services (AWS)
+        ◦ Servicios destacados: 
+            ▪ Amazon RDS (relacional), DynamoDB (NoSQL), Redshift (analítica), DocumentDB (documentos), Neptune (grafos), Timestream (series temporales) 
+        ◦ Fortalezas: 
+            ▪ Ecosistema amplio y maduro 
+            ▪ Variedad de servicios especializados 
+            ▪ Red global extensa 
+            ▪ Herramientas de migración avanzadas 
+            ▪ Comunidad y documentación sólida 
+    • Microsoft Azure
+        ◦ Servicios destacados: 
+            ▪ Azure SQL Database, Cosmos DB (multimodelo), Synapse Analytics, Database para MySQL/PostgreSQL, Cache para Redis 
+        ◦ Fortalezas: 
+            ▪ Integración nativa con productos Microsoft 
+            ▪ Soluciones híbridas robustas 
+            ▪ Alto cumplimiento normativo 
+            ▪ Herramientas de BI integradas 
+            ▪ Soporte empresarial consolidado 
+    • Google Cloud Platform (GCP)
+        ◦ Servicios destacados: 
+            ▪ Cloud SQL, Firestore (documentos), BigQuery (analítica serverless), Bigtable (NoSQL), Spanner (relacional distribuida) 
+        ◦ Fortalezas: 
+            ▪ Liderazgo en análisis y machine learning 
+            ▪ BigQuery como referente en analytics 
+            ▪ Innovación en bases distribuidas 
+            ▪ Integración con AI/ML 
+            ▪ Precios competitivos 
+    • Otros Proveedores Relevantes
+        ◦ Oracle Cloud: Bases empresariales con automatización avanzada 
+        ◦ IBM Cloud: Bases híbridas con enfoque en inteligencia artificial 
+        ◦ MongoDB Atlas: Especializado en bases de documentos como servicio 
+        ◦ Snowflake: Foco en data warehousing y análisis de datos 
+
+Recursos de Aprendizaje y Certificación
+    • Certificaciones Relevantes:
+        ◦ AWS Certified Database – Specialty 
+        ◦ Azure Database Administrator Associate 
+        ◦ Google Cloud Professional Data Engineer 
+        ◦ MongoDB Certified Developer/DBA 
+        ◦ Oracle Cloud Infrastructure Architect 
+    • Documentación y Training:
+        ◦ Guías oficiales de cada proveedor 
+        ◦ Frameworks de arquitectura (AWS Well-Architected, Azure Architecture Center, GCP Architecture Framework) 
+        ◦ Mejores prácticas específicas por tipo de base de datos 
+    • Comunidades y Eventos:
+        ◦ Grupos locales de usuarios cloud 
+        ◦ Conferencias: AWS re:Invent, Microsoft Ignite, Google Cloud Next 
+        ◦ Webinars, workshops y foros como Stack Overflow, Reddit 
+        ◦ Comunidades específicas: MongoDB, PostgreSQL, etc. 
+
+
+
+
+
+Claves para una Adopción Exitosa
+    • Planificación Estratégica: Considerar aspectos técnicos, organizacionales, financieros y regulatorios.
+    • Enfoque Gradual: Comenzar con aplicaciones no críticas, migrar por fases y acumular experiencia antes de abordar sistemas sensibles.
+    • Capacitación del Equipo: Invertir en formación cloud-native para DBAs, desarrolladores, DevOps y seguridad.
+    • Governance y Seguridad: Establecer políticas claras desde el día uno para evitar riesgos y facilitar el escalado.
+    • Monitoreo y Optimización Continua: Implementar herramientas de control, ajustar configuraciones y revisar costos regularmente.
+
+Casos de Estudio
+    • E-commerce Global: Migró de Oracle a Aurora + DynamoDB + Redis. Logró 40% menos costos, 60% menos latencia y escalabilidad automática. Requirió testing, capacitación y monitoreo post-migración.
+    • HealthTech Analytics: Usó BigQuery + Pub/Sub + Vertex AI para procesar 10TB diarios con cumplimiento HIPAA. Redujo insights de días a minutos y escaló a decenas de millones de pacientes.
+    • Gaming Platform: Escaló de 1M a 50M usuarios con DynamoDB Global Tables + ElastiCache + Kinesis. Mantuvo latencia <50ms y disponibilidad del 99.995%. Rediseñó claves y optimizó caching.
+
+AMENAZAS Y ATAQUES A BASES DE DATOS
+Por qué es atractivo atacar bases de datos
+    • Alta concentración de información valiosa en un solo lugar.
+    • Las bases suelen quedar expuestas por fallas en la capa de aplicación, malas configuraciones, credenciales débiles o backups inseguros.
+    • Recuperación es costosa
+Motivaciones de los ataques
+    • Monetarias (venta de datos, fraude, ransomware).
+    • Política o de espionaje.
+    • Reconocimiento (mostrar habilidad).
+    • Competencia desleal o insiders.
+
+Información codiciada:
+    • Exfiltración de datos personales (PII): nombres, direcciones, DNI, mails, números de teléfono.
+    • Credenciales: hashes, tokens, claves API que permiten pivotar a otros sistemas.
+    • Información financiera: tarjetas, transacciones, balances.
+    • Propiedad intelectual: diseños, código, algoritmos, documentos confidenciales.
+    • Capacidad de extorsión: robar y publicarlos o cifrarlos para pedir rescate.
+    • Sabotaje: borrar o alterar datos para causar daño operativo o reputacional.
+
+Modelos de amenaza
+    • Externo: atacantes desde Internet que explotan servicios expuestos o credenciales filtradas.
+    • Interno: empleados, contratistas o proveedores con acceso legítimo que abusan o cometen errores.
+    • Supply chain: vulnerabilidades en dependencias o servicios externos que permiten llegar a la DB.
+    • Automatizado: bots que prueban listas de credenciales o buscan instancias mal configuradas.
+       
+Vectores de entrada:
+    • Aplicaciones web y APIs: validación incompleta de inputs, consultas mal construidas, endpoints públicos.
+    • Credenciales comprometidas: reuse de contraseñas, secrets en repositorios, claves no rotadas.
+    • Puertos y servicios expuestos: instancias de DB accesibles directamente desde Internet.
+    • Backups y almacenamiento: backups sin cifrar o buckets/volúmenes accesibles.
+    • Acceso administrativo sin protección: herramientas de administración sin MFA o con VPN faltante.
+    • Errores de configuración: roles demasiado permisivos, funciones peligrosas habilitadas, logs que no auditan.
+    • Vulnerabilidades del sistema operativo o contenedores: permiten RCE y lateral movement.
+
+Tipos de ataques:
+    • Inyección de Consultas
+        ◦ SQL Injection (SQLi): Manipulación de consultas SQL mediante entradas no confiables.
+            ▪ Impacto: Lectura, modificación o borrado de datos; escalado de privilegios.
+            ▪ Mitigación: Prepared statements, validación estricta, ocultar errores SQL, pruebas SAST/DAST.
+        ◦ NoSQL Injection: Alteración de consultas en motores como MongoDB o CouchDB.
+            ▪ Impacto: Bypass de filtros, exfiltración o modificación de documentos.
+            ▪ Mitigación: Validación de esquema, escape seguro, revisión de librerías.
+    • Ataques a Credenciales
+        ◦ Credential Stuffing: Uso automatizado de credenciales filtradas en otros servicios.
+        ◦ Fuerza Bruta: Prueba masiva de combinaciones de usuario/contraseña.
+            ▪ Impacto: Acceso no autorizado, exfiltración, acciones maliciosas.
+            ▪ Mitigación: MFA, rotación de contraseñas, detección de anomalías, rate-limiting, breach detection.
+    • Escalada y Persistencia
+        ◦ Escalada de Privilegios: Uso indebido de funciones o grants para obtener control total.
+            ▪ Mitigación: Principle of least privilege, separación de roles, auditoría de permisos.
+        ◦ Compromiso de Infraestructura: Explotación de vulnerabilidades en el host o contenedor.
+            ▪ Mitigación: Patching, hardening, imágenes mínimas, segmentación, EDR.
+    • Exfiltración y Manipulación
+        ◦ Canales Alternos: Uso de rutas indirectas (logs, campos exportables) para extraer datos.
+        ◦ Tampering: Alteración de datos críticos para fraude o sabotaje.
+            ▪ Mitigación: Monitoreo de exportaciones, segmentación, auditoría de cambios, checksums.
+        ◦ Ransomware: Cifrado y secuestro de datos con fines extorsivos.
+            ▪ Mitigación: Backups cifrados y offline, pruebas de recuperación, detección temprana.
+    • Errores de Configuración
+        ◦ Exposición Accidental: Instancias sin autenticación, sin TLS o backups públicos.
+            ▪ Mitigación: VPN/bastion, cifrado en tránsito, revisión de permisos y configuración continua.
+
+Indicadores generales de ataques
+    • Picos de tráfico o E/S anómalos
+    • Consultas repetitivas o masivas
+    • Accesos desde ubicaciones inusuales
+    • Creación/modificación de cuentas administrativas
+    • Logs con procesos nuevos o binarios alterados
+
+Herramientas y técnicas de deteccion
+    • Logging centralizado (SIEM)
+    • Monitoreo de queries y latencias
+    • Detección de anomalías (ML, behaviour analytics)
+    • Baselining de comportamiento normal
+    • Honeypots y data traps
+    • Integración con IDS/IPS y EDR
+Medidas Preventivas y Defensa en Profundidad 
+    • A Nivel de Aplicación
+        ◦ Consultas parametrizadas
+        ◦ Validación por whitelist
+        ◦ Escape y saneamiento
+        ◦ Control de errores
+        ◦ Revisiones de código (SAST/DAST)
+    • Operaciones y Respuesta
+        ◦ Alertas por anomalías
+        ◦ Playbooks de respuesta ante incidentes
+        ◦ Ejercicios de red team y testing continuo
+        ◦ Capacitación en seguridad y gestión de secretos
+
+    • A Nivel de Datos y Base
+        ◦ Privilegios mínimos por rol
+        ◦ Segmentación de datos sensibles
+        ◦ Auditoría y logging con retención adecuada
+        ◦ Cifrado en tránsito y reposo
+        ◦ Gestión segura de credenciales (vaults)
+        ◦ Backups cifrados, offsite e inmutables
+    • A Nivel de Red e Infraestructura
+        ◦ No exponer DB directamente a Internet
+        ◦ Firewalls y ACLs estrictos
+        ◦ Seguridad de hosts (patching, escaneo)
+        ◦ Monitorización de tráfico saliente
+
+Proceso de Respuesta ante Incidentes
+    • Detección
+        ◦ Confirmar indicadores de compromiso
+        ◦ Conservar logs y snapshots del estado del sistema
+    • Contención
+        ◦ Aislar la instancia afectada sin borrar evidencia
+        ◦ Revocar accesos comprometidos (claves, tokens)
+    • Preservación de Evidencia
+        ◦ Copiar logs, binlogs/WAL, snapshots, memoria
+        ◦ Documentar tiempos y acciones ejecutadas
+    • Investigación
+        ◦ Analizar el vector de entrada y alcance del ataque
+        ◦ Detectar backdoors, cuentas nuevas o scripts persistentes
+
+
+    • Erradicación
+        ◦ Aplicar parches, cerrar puertos, eliminar usuarios maliciosos
+        ◦ Restaurar desde backups limpios si es necesario
+    • Recuperación
+        ◦ Rehabilitar servicios gradualmente
+        ◦ Verificar integridad y reconciliar datos entre sistemas
+    • Lecciones Aprendidas
+        ◦ Post-mortem técnico y organizacional
+        ◦ Actualización de controles, playbooks y notificaciones legales
+    • Consideraciones Legales
+        ◦ Preservar cadena de custodia para análisis forense
+        ◦ Notificar a autoridades y clientes según normativas de privacidad
+        ◦ Coordinar comunicación pública con precisión y responsabilidad
+Buenas Prácticas de Diseño y Desarrollo
+    • Threat Modeling Temprano: Identificar activos, actores y vectores desde el diseño
+    • Separación de Ambientes: No usar datos reales en dev/test; preferir datos sintéticos
+    • CI/CD Seguro: SAST, escaneo de dependencias y secretos antes del despliegue
+    • Revisión de Código: Detectar patrones inseguros (queries dinámicas, inputs mal manejados)
+    • Feature Flags: Permitir reversión rápida de funcionalidades sensibles
+    • Logging con Propósito: Auditar cambios críticos (consultas, esquema, permisos)
+    • Backups y Restauración: Validar periódicamente que los backups funcionen correctamente
+
+Ética y Práctica Segura para Aprendizaje
+    • Autorización Formal: Nunca realizar pruebas sin permiso explícito
+    • Entornos Controlados: Usar laboratorios vulnerables (OWASP Juice Shop, DVWA, CTFs)
+    • Divulgación Responsable: Reportar vulnerabilidades siguiendo protocolos éticos
+    • Cumplimiento Normativo: Conocer y respetar leyes de protección de datos y brechas
+
+ÁLGEBRA RELACIONAL
+Selección (σ): Filtra las filas de una tabla que cumplen con una condición específica. Sintaxis: σ_condición(Tabla). Ejemplo: σ_Salario > 50000(Empleados) — Selecciona los empleados cuyo salario es mayor de 50,000.
+Proyección (π): Extrae columnas específicas de una tabla, eliminando duplicados. Sintaxis: π_columnas(Tabla. Ejemplo: π_Nombre, Salario(Empleados) — Extrae solo los nombres y salarios de los empleados.
+Unión (∪): Combina las filas de dos tablas con la misma estructura, eliminando duplicados. Sintaxis: Tabla1 ∪ Tabla2. Ejemplo: Empleados_A ∪ Empleados_B — Combina los empleados de dos departamentos.
+Intersección (∩): Devuelve las filas comunes entre dos tablas con la misma estructura. Sintaxis: Tabla1 ∩ Tabla2. Ejemplo: Empleados_Activos ∩ Empleados_Promocionados — Empleados que están activos y han sido promocionados.
+Diferencia (−): Descripción: Devuelve las filas que están en la primera tabla pero no en la segunda. Sintaxis: Tabla1 − Tabla2. Ejemplo: Empleados − Empleados_Inactivos — Empleados que están activos pero no están en la lista de empleados inactivos.
+Join (⨝): Combina filas de dos tablas basadas en una condición de igualdad entre columnas. Sintaxis: Tabla1 ⨝condición Tabla2. Ejemplo: Empleados ⨝ Departamento_ID = ID(Departamentos) — Une empleados con sus departamentos correspondientes.
+División (÷): Devuelve las filas de una tabla que están asociadas con todas las filas de otra tabla. Sintaxis: Tabla1 ÷ Tabla2. Ejemplo: Proyectos ÷ Empleados_Asignados — Empleados que están asignados a todos los proyecto
